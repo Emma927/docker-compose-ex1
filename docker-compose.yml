@@ -1,6 +1,6 @@
 services:
   todo-app:
-    image: node:21
+    image: node:24
     container_name: todo-app
     volumes:
       - ./app:/app
