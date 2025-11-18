@@ -9,7 +9,7 @@ FROM node:24-alpine
 WORKDIR /app
 
 # 🔹 Aktualizacja pakietów systemowych, żeby zmniejszyć podatności
-RUN apk update && apk upgrade
+# RUN apk update && apk upgrade
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
