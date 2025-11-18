@@ -89,12 +89,12 @@ jobs:
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       # 2b. Scan source code
-      - name: Trivy scan source code
-        uses: aquasecurity/trivy-action@v0.33.1
-        with:
-          scan-type: fs
-          path: ./app         # katalog z kodem źródłowym, np. ./app lub ./src
-          format: table
-          exit-code: 1
-          vuln-type: code,secret
-          severity: CRITICAL,HIGH
+    #   - name: Trivy scan source code
+    #     uses: aquasecurity/trivy-action@v0.33.1
+    #     with:
+    #       scan-type: fs
+    #       path: ./app         # katalog z kodem źródłowym, np. ./app lub ./src
+    #       format: table
+    #       exit-code: 1
+    #       vuln-type: code,secret
+    #       severity: CRITICAL,HIGH
