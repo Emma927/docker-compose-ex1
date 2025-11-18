@@ -13,7 +13,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: timetracker  # tutaj ustawiasz nazwę obrazu
+  IMAGE_NAME: todo-app  # tutaj ustawiasz nazwę obrazu
 
 jobs:
   # 1️⃣ Build and push Docker image
