@@ -13,7 +13,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: todo-app  # tutaj ustawiasz nazwę obrazu
+  IMAGE_NAME: todo-app  # nazwa obrazu
 
 jobs:
   # 1️⃣ Build and push Docker image
@@ -93,7 +93,8 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
+          path: ./app            # katalog z kodem źródłowym, np. ./app lub ./src
           format: table
           exit-code: 1
-          vuln-type: code
-          severity: CR
+          vuln-type: code,secret
+          severity: CRITICAL,HIGH
