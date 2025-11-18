@@ -96,6 +96,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           version: 'latest'
+          scan-stage: final   # <-- TYLKO finalny stage, nie builder
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
