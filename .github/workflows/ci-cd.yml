@@ -93,7 +93,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
-          path: ./app            # katalog z kodem źródłowym, np. ./app lub ./src
+          path: .           # katalog z kodem źródłowym, np. ./app lub ./src
           format: table
           exit-code: 1
           vuln-type: code,secret
