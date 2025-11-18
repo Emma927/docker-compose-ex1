@@ -1,93 +1,105 @@
-name: CI/CD - Docker Build & Security Scan
+name: Feature Branch - Docker Build
 
 on:
   pull_request:
     branches:
-      - develop
-      - main
+      - 'develop'
   push:
     tags:
       - '*'
-
+  
+ 
 permissions:
   packages: write
-
-env:
-  IMAGE_NAME: todo-app  # nazwa obrazu
-
+    
 jobs:
-  # 1️⃣ Build and push Docker image
   build_docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Set lower case Github repository name
+        run: |
+          echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          
       - name: Checkout code
         uses: actions/checkout@v3
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GitHub Container Registry
+      - name: Login to Github Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set Docker image tag and lowercase owner
+      - name: Set proper tag name for Docker image
         run: |
-          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          # Extracting the substring after "refs/heads/"
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+
+          # Converting to lower case and replacing '/' with '-'
           BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
-          echo "OWNER_LOWER=$OWNER_LOWER" >> $GITHUB_ENV
+
+          # Creating new environment variable
           echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
+
         env:
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_REF: ${{ github.ref_name }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ env.OWNER_LOWER }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
-          cache-from: type=registry,ref=ghcr.io/${{ env.OWNER_LOWER }}/${{ env.IMAGE_NAME }}:latest
-          cache-to: type=inline
-
-  # 2️⃣ Security scan
+          tags: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
+  
   secure_scan:
     runs-on: ubuntu-latest
     needs: build_docker
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set Docker image tag and lowercase owner
+      - name: Set lower case Github repository name
         run: |
-          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
-          echo "OWNER_LOWER=$OWNER_LOWER" >> $GITHUB_ENV
-          echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
+          echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
         env:
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          
+      - name: Set proper tag name for Docker image
+        run: |
+          # Extracting the substring after "refs/heads/"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+
+          echo "BRANCH_NAME_LOWER=$BRANCH_NAME"
+
+          # Converting to lower case and replacing '/' with '-'
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
+
+          echo "BRANCH_NAME_LOWER=$BRANCH_NAME_LOWER"
+
+          # Creating new environment variable
+          echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
+
+        env:
           GITHUB_REF: ${{ github.ref_name }}
 
-      # 2a. Scan Docker image
-      - name: Trivy scan Docker image
+      - name: Trivy Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ghcr.io/${{ env.OWNER_LOWER }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
-          format: table
-          exit-code: 1
+          image-ref: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
+          format: 'table'
+          exit-code: '1'
           ignore-unfixed: true
-          vuln-type: os,library
-          severity: CRITICAL,HIGH
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          version: 'latest'
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-
+   
       # 2b. Scan source code
     #   - name: Trivy scan source code
     #     uses: aquasecurity/trivy-action@v0.33.1
