@@ -7,13 +7,13 @@ WORKDIR /app
 # Tylko pliki zależności
 COPY ./app/package*.json ./
 
-# Instalujemy *tylko* prod deps
+# Instalujemy production deps (bez dev)
 RUN npm ci --omit=dev
 
-# Kopiujemy kod
-COPY ./app .
+# Kopiujemy cały kod źródłowy
+COPY ./app ./
 
-# Build Next.js
+# Build Next.js (tutaj devDependencies mogą być tymczasowo pobrane przez Next)
 RUN npm run build
 
 
@@ -23,18 +23,20 @@ RUN npm run build
 FROM node:24-alpine AS runtime
 WORKDIR /app
 
-# Wrzucamy production package.json
+# Kopiujemy package.json i package-lock.json z buildera
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
 
-# Instalujemy tylko production deps (bez dev, bez builder deps)
+# Instalujemy tylko production dependencies
 RUN npm ci --omit=dev
 
-# Copy built assets
+# Kopiujemy built assets
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-# Non-root user
+# Tworzymy non-root user
 RUN adduser -D nextjs
 USER nextjs
 
+# Uruchamiamy aplikację
 CMD ["npm", "start"]
