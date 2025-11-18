@@ -90,7 +90,7 @@ jobs:
 
       # 2b. Scan source code
       - name: Trivy scan source code
-        uses: aquasecurity/trivy-action@v0.14.0
+        uses: aquasecurity/trivy-action@v0.23.1   # stabilna wersja
         with:
           scan-type: fs
           path: ./app         # katalog z kodem źródłowym, np. ./app lub ./src
