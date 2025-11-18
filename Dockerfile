@@ -1,24 +1,40 @@
+##############
+#  BUILDER   #
+##############
 FROM node:24 AS builder
 WORKDIR /app
-COPY ./app/package*.json . 
-RUN npm install
+
+# Tylko pliki zależności
+COPY ./app/package*.json ./
+
+# Instalujemy *tylko* prod deps
+RUN npm ci --omit=dev
+
+# Kopiujemy kod
 COPY ./app .
+
+# Build Next.js
 RUN npm run build
 
-FROM node:24-alpine
+
+##############
+#  RUNTIME   #
+##############
+FROM node:24-alpine AS runtime
 WORKDIR /app
 
-# 🔹 Aktualizacja pakietów systemowych, żeby zmniejszyć podatności
-# RUN apk update && apk upgrade
+# Wrzucamy production package.json
+COPY --from=builder /app/package.json ./
 
+# Instalujemy tylko production deps (bez dev, bez builder deps)
+RUN npm ci --omit=dev
+
+# Copy built assets
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
 
-# Robimy npm install next przed zmianą użytkownka z root na nextjs, aby nie miećproblemów z upranieniami 
-RUN npm install next
-
+# Non-root user
 RUN adduser -D nextjs
 USER nextjs
-#RUN npm install next
+
 CMD ["npm", "start"]
