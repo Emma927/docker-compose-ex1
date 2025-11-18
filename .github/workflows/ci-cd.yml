@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - 'develop'
-      - 'main'
   push:
     tags:
       - '*'
@@ -100,6 +99,7 @@ jobs:
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+   
    
       # 2b. Scan source code
     #   - name: Trivy scan source code
