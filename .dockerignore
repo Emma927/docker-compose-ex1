@@ -1,0 +1,34 @@
+# Node dependencies (zainstalujemy je w obrazie przez npm/yarn)
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js build output (nie kopiujemy builda, będziemy buildować w Dockerze)
+.next
+out
+build
+
+# Env files (lokalne, nie kopiujemy sekretów do obrazu)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Git files
+.git
+.gitignore
+
+# Docker / misc
+.DS_Store
+*.pem
+docker-compose.override.yml
+
+# Coverage / testy
+coverage
+
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
