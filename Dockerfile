@@ -1,37 +1,18 @@
-# 1️⃣ Builder
+# Builder
 FROM node:24 AS builder
 WORKDIR /app
-
-# Kopiujemy tylko package.json + package-lock.json
 COPY ./app/package*.json ./
-
-# Instalujemy wszystkie deps
 RUN npm ci
-
-# Kopiujemy kod
 COPY ./app ./
-
-# Build Next.js
 RUN npm run build
 
-# 2️⃣ Runtime
-FROM node:24-alpine AS runtime
+# Runtime (distroless)
+FROM gcr.io/distroless/nodejs:24
 WORKDIR /app
-
-# Kopiujemy built assets
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
-
-# Instalujemy tylko production dependencies (żeby Trivy widziało aktualne wersje!)
-RUN npm ci --omit=dev
-
-# Dodajemy non-root user
-RUN adduser -D nextjs
-USER nextjs
-
-# Uruchamiamy aplikację
+COPY --from=builder /app/node_modules ./node_modules
 CMD ["npm", "start"]
 
 
