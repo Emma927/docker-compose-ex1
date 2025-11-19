@@ -36,19 +36,10 @@ jobs:
 
       - name: Set proper tag name for Docker image
         run: |
-          # Extracting the substring after "refs/heads/"
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-
-          # Converting to lower case and replacing '/' with '-'
-          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
-
-          echo "BRANCH_NAME_LOWER=$BRANCH_NAME_LOWER"
-
-          # Creating new environment variable
-          echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
-
+          TAG_NAME=$(echo "${GITHUB_REF_NAME,,}" | sed 's|/|-|g')
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
         env:
-          GITHUB_REF: ${{ github.ref_name }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
 
       - name: Build Docker image
         uses: docker/build-push-action@v3
