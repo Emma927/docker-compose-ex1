@@ -1,22 +1,57 @@
-# Builder
+# 1️⃣ Builder
 FROM node:24 AS builder
 WORKDIR /app
+
+# Kopiujemy tylko package.json + package-lock.json
 COPY ./app/package*.json ./
+
+# Instalujemy wszystkie dependencies (dev + prod)
 RUN npm ci
+
+# Kopiujemy kod źródłowy
 COPY ./app ./
+
+# Budujemy Next.js
 RUN npm run build
 
-# Runtime (distroless)
+# 2️⃣ Runtime (distroless)
 FROM gcr.io/distroless/nodejs24-debian12
 WORKDIR /app
+
+# Kopiujemy tylko build i public assets
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
+
+# Tworzymy non-root user
+RUN adduser -D nextjs
+USER nextjs
+
+# CMD uruchamia aplikację
 CMD ["npm", "start"]
 
 
+# Ta wersja działa
+# Builder
+# FROM node:24 AS builder
+# WORKDIR /app
+# COPY ./app/package*.json ./
+# RUN npm ci
+# COPY ./app ./
+# RUN npm run build
+# 
+# # Runtime (distroless)
+# FROM gcr.io/distroless/nodejs24-debian12
+# WORKDIR /app
+# COPY --from=builder /app/.next ./.next
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/package.json ./package.json
+# COPY --from=builder /app/node_modules ./node_modules
 
+# CMD ["npm", "start"]
+
+
+# To nie działa
 # FROM node:24 AS builder
 # WORKDIR /app
 # COPY ./app/package*.json . 
