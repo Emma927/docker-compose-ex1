@@ -1,34 +1,46 @@
-# 1️⃣ Builder
+##############
+#  BUILDER   #
+##############
 FROM node:24 AS builder
 WORKDIR /app
 
-# Kopiujemy tylko package.json + package-lock.json
+# Tylko pliki zależności
 COPY ./app/package*.json ./
 
-# Instalujemy wszystkie dependencies (dev + prod)
-RUN npm ci
+# Instalujemy production deps (bez dev)
+RUN npm ci --omit=dev
 
-# Kopiujemy kod źródłowy
+# Kopiujemy cały kod źródłowy
 COPY ./app ./
 
-# Budujemy Next.js
+# Build Next.js (tutaj devDependencies mogą być tymczasowo pobrane przez Next)
 RUN npm run build
 
-# 2️⃣ Runtime (distroless)
-FROM gcr.io/distroless/nodejs24-debian12
+
+##############
+#  RUNTIME   #
+##############
+FROM node:24-alpine AS runtime
 WORKDIR /app
 
-# Kopiujemy tylko build i public assets
+# Kopiujemy package.json i package-lock.json z buildera
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
+
+# Instalujemy tylko production dependencies
+RUN npm ci --omit=dev
+
+# Kopiujemy built assets
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
 
 # Tworzymy non-root user
 RUN adduser -D nextjs
 USER nextjs
 
-# CMD uruchamia aplikację
+# Uruchamiamy aplikację
 CMD ["npm", "start"]
+
 
 
 # Ta wersja działa
