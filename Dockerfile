@@ -7,7 +7,7 @@ COPY ./app ./
 RUN npm run build
 
 # Runtime (distroless)
-FROM gcr.io/distroless/nodejs:24
+FROM gcr.io/distroless/nodejs:24-debian11
 WORKDIR /app
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
