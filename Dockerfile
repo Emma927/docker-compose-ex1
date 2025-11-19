@@ -1,12 +1,12 @@
-# 1️⃣ Builder stage
+# 1️⃣ Etap Builder
 FROM node:24 AS builder
 WORKDIR /app
 
-# Kopiujemy tylko package.json i package-lock.json (szybszy build)
+# Kopiujemy tylko package.json i package-lock.json, aby przyspieszyć build
 COPY ./app/package*.json ./
 
-# Instalujemy tylko produkcyjne zależności
-RUN npm install --production
+# Instalujemy wszystkie zależności zgodnie z lockfile
+RUN npm ci
 
 # Kopiujemy cały kod źródłowy
 COPY ./app ./
@@ -14,24 +14,25 @@ COPY ./app ./
 # Budujemy aplikację Next.js
 RUN npm run build
 
-# 2️⃣ Finalny stage (runtime)
+# 2️⃣ Etap Finalny (runtime)
 FROM node:24-alpine
 WORKDIR /app
 
-# Kopiujemy build i public
+# Kopiujemy tylko build i public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-# Kopiujemy package.json i node_modules z buildera (z tylko produkcyjnymi deps)
+# Kopiujemy package.json i node_modules z buildera
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 
-# Ustawienie użytkownika
+# Dodajemy nie-root użytkownika
 RUN adduser -D nextjs
 USER nextjs
 
-# Uruchomienie aplikacji
+# Uruchamiamy aplikację
 CMD ["npm", "start"]
+
 
 
 # FROM node:24 AS builder
