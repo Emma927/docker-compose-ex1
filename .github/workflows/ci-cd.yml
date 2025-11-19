@@ -71,12 +71,11 @@ jobs:
 
       - name: Set proper tag name for Docker image
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          TAG_LOWER=$(echo "$TAG" | tr '[:upper:]' '[:lower:]')
-          echo "TAG_NAME=$TAG_LOWER" >> $GITHUB_ENV
-
+          TAG_NAME_LOWER="${GITHUB_REF_NAME,,}"
+          echo "TAG_NAME=$TAG_NAME_LOWER" >> $GITHUB_ENV
         env:
-          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
 
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@master
