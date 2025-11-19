@@ -3,6 +3,10 @@ name: Feature Branch - Docker Build
 on: 
   pull_request:
     branches: 'develop'
+  
+  push:
+    tags:
+      - '*'
 
 permissions:
   packages: write
