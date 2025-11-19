@@ -67,26 +67,15 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
 
-      - name: Install Trivy
-        run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-
       - name: Trivy Scan
-        # uses: aquasecurity/trivy-action@master
-        # with:
-        #   image-ref: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
-        #   format: 'table'
-        #   exit-code: '1'
-        #   ignore-unfixed: true
-        #   vuln-type: 'os,library'
-        #   severity: 'CRITICAL,HIGH'
-        run: |
-          trivy image \
-            --ignore-unfixed \
-            --vuln-type os,library \
-            --severity CRITICAL,HIGH \
-            --ignore-dirs /usr/local/lib/node_modules \
-            ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
         env:
             TRIVY_USERNAME: ${{ github.actor }}
             TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
