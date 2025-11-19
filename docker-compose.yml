@@ -5,6 +5,7 @@ services:
     volumes:
       - ./app:/app
     working_dir: /app
+    # Docker / skrypt chce wiedzieć: jaki UID/GID użyć dla użytkownika w kontenerze, żeby pasował do katalogów hosta.
     user: "${USER_ID}:${GROUP_ID}"
     tty: true
     ports:
