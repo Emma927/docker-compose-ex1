@@ -1,11 +1,11 @@
-FROM node:21 AS builder
+FROM node:24 AS builder
 WORKDIR /app
 COPY ./app/package*.json . 
 RUN npm install
 COPY ./app .
 RUN npm run build
 
-FROM node:21-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
