@@ -1,32 +1,33 @@
-# 1️⃣ Etap Builder
+# 1️⃣ Builder
 FROM node:24 AS builder
 WORKDIR /app
 
-# Kopiujemy tylko package.json i package-lock.json, aby przyspieszyć build
+# Kopiujemy tylko package.json + package-lock.json
 COPY ./app/package*.json ./
 
-# Instalujemy wszystkie zależności zgodnie z lockfile
+# Instalujemy wszystkie deps
 RUN npm ci
 
-# Kopiujemy cały kod źródłowy
+# Kopiujemy kod
 COPY ./app ./
 
-# Budujemy aplikację Next.js
+# Build Next.js
 RUN npm run build
 
-# 2️⃣ Etap Finalny (runtime)
-FROM node:24-alpine
+# 2️⃣ Runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 
-# Kopiujemy tylko build i public
+# Kopiujemy built assets
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-
-# Kopiujemy package.json i node_modules z buildera
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package-lock.json ./package-lock.json
 
-# Dodajemy nie-root użytkownika
+# Instalujemy tylko production dependencies (żeby Trivy widziało aktualne wersje!)
+RUN npm ci --omit=dev
+
+# Dodajemy non-root user
 RUN adduser -D nextjs
 USER nextjs
 
