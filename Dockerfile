@@ -36,6 +36,7 @@ COPY --from=builder /app/public ./public
 
 # Tworzymy non-root user
 RUN adduser -D nextjs
+RUN chown -R nextjs:nextjs /app
 USER nextjs
 
 # Uruchamiamy aplikację
@@ -81,6 +82,7 @@ CMD ["npm", "start"]
 # RUN npm install next
 # 
 # RUN adduser -D nextjs
+# RUN chown -R nextjs:nextjs /app - dodane przez mnie  - Jeżeli nie zrobisz chown, użytkownik jest non-root, ale nie ma prawa zapisu w /app, więc aplikacja może się wysypać.
 # USER nextjs
 # #RUN npm install next
 # CMD ["npm", "start"]
